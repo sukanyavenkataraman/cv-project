@@ -129,33 +129,6 @@ def basic_block(filters, init_strides=(1, 1), is_first_block_of_first_layer=Fals
 
     return f
 
-
-def bottleneck(filters, init_strides=(1, 1), is_first_block_of_first_layer=False):
-    """Bottleneck architecture for > 34 layer resnet.
-    Follows improved proposed scheme in http://arxiv.org/pdf/1603.05027v2.pdf
-    Returns:
-        A final conv layer of filters * 4
-    """
-    def f(input):
-
-        if is_first_block_of_first_layer:
-            # don't repeat bn->relu since we just did bn->relu->maxpool
-            conv_1_1 = Conv2D(filters=filters, kernel_size=(1, 1),
-                              strides=init_strides,
-                              padding="same",
-                              kernel_initializer="he_normal",
-                              kernel_regularizer=l2(1e-4))(input)
-        else:
-            conv_1_1 = _bn_relu_conv(filters=filters, kernel_size=(1, 1),
-                                     strides=init_strides)(input)
-
-        conv_3_3 = _bn_relu_conv(filters=filters, kernel_size=(3, 3))(conv_1_1)
-        residual = _bn_relu_conv(filters=filters * 4, kernel_size=(1, 1))(conv_3_3)
-        return _shortcut(input, residual)
-
-    return f
-
-
 def _handle_dim_ordering():
     global ROW_AXIS
     global COL_AXIS
