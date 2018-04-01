@@ -3,8 +3,8 @@ from keras.layers.pooling import MaxPooling3D
 from keras.layers.core import Dense, Activation, Dropout, Flatten
 from keras.layers.wrappers import Bidirectional, TimeDistributed
 from keras.layers.recurrent import GRU
-from keras.layers import Input
 from keras.models import Model
+from keras.layers import Input, Dense
 from keras.layers.core import Lambda
 from keras import backend as K
 import numpy as np
@@ -25,7 +25,7 @@ def ctc_lambda_func(args):
     y_pred = y_pred[:, :, :]
     return K.ctc_batch_cost(labels, y_pred, input_length, label_length)
 
-class Model(object):
+class LipNetModel(object):
     def __init__(self, img_c=3, img_w=100, img_h=50, frames_n=75, absolute_max_string_len=32, output_size=28):
         self.img_c = img_c
         self.img_w = img_w
@@ -37,6 +37,7 @@ class Model(object):
         self.buildModel()
 
     def buildModel(self):
+
         if K.image_data_format() == 'channels_first':
             input_shape = (self.img_c, self.frames_n, self.img_w, self.img_h)
         else:
@@ -62,14 +63,12 @@ class Model(object):
 
         self.y_pred = Activation('softmax', name='softmax')(dense)
 
-        print (self.y_pred.shape)
         self.loss = CTC('ctc', [self.y_pred, self.labels, self.input_length, self.label_length])
 
         self.model = Model(inputs=[self.input_data, self.labels, self.input_length, self.label_length], outputs=self.loss)
 
         print (self.model.summary())
 
-m = Model()
 
 
 
