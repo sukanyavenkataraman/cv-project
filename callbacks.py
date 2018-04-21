@@ -118,7 +118,7 @@ class Statistics(keras.callbacks.Callback):
         return self.get_mean_tuples(wrapped_data, 1.0, bleu_score.sentence_bleu)
 
     def on_train_begin(self, logs={}):
-        with open(os.path.join(self.output_dir, 'stats.csv'), 'wb') as csvfile:
+        with open(os.path.join(self.output_dir, 'stats.csv'), 'w+') as csvfile:
             csvw = csv.writer(csvfile)
             csvw.writerow(["Epoch", "Samples", "Mean CER", "Mean CER (Norm)", "Mean WER", "Mean WER (Norm)", "Mean BLEU", "Mean BLEU (Norm)"])
 
@@ -129,7 +129,7 @@ class Statistics(keras.callbacks.Callback):
               % (epoch, stats['samples'], stats['cer'][0], stats['cer'][1], stats['wer'][0], stats['wer'][1], stats['bleu'][0], stats['bleu'][1]))
 
         if self.output_dir is not None:
-            with open(os.path.join(self.output_dir, 'stats.csv'), 'ab') as csvfile:
+            with open(os.path.join(self.output_dir, 'stats.csv'), 'a+') as csvfile:
                 csvw = csv.writer(csvfile)
                 csvw.writerow([epoch, stats['samples'],
                                "{0:.5f}".format(stats['cer'][0]), "{0:.5f}".format(stats['cer'][1]),
@@ -159,4 +159,4 @@ class Visualize(keras.callbacks.Callback):
             csvw = csv.writer(csvfile)
             csvw.writerow(["Truth", "Decoded"])
             for i in range(self.num_display_sentences):
-csvw.writerow([output_batch['source_str'][i], res[i]])
+               csvw.writerow([output_batch['source_str'][i], res[i]])

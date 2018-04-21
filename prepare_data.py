@@ -29,8 +29,9 @@ class LipNetDataGen(keras.callbacks.Callback):
 
     def __next__(self):
 
+        print (self.curr_index.value, len(self.files), self.batch_size)
         with self.curr_index.get_lock():         
-            if (self.curr_index.value+1)*self.batch_size > len(self.files):
+            if (self.curr_index.value+2)*self.batch_size >= len(self.files):
                 self.curr_index.value = 0
                 np.random.shuffle(self.indexes)
             else:
@@ -43,6 +44,7 @@ class LipNetDataGen(keras.callbacks.Callback):
         #print (indexes)
         # Find list of IDs
         files_temp = [self.files[k] for k in indexes]
+        print (self.curr_index.value, len(files_temp))
 
         # Generate data
         X, y = self.__data_generation(files_temp)
@@ -79,7 +81,7 @@ class LipNetDataGen(keras.callbacks.Callback):
 
         label_length = np.asarray(label_length)
         input_length = np.asarray(input_length)
-
+       
         inputs = {'input': X,
                   'labels': y,#keras.utils.to_categorical(y, num_classes=32),#self.n_classes),
                   'input_len': input_length,

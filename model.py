@@ -69,6 +69,13 @@ class LipNetModel(object):
 
         print (self.model.summary())
 
+    def predict(self, input_batch):
+        return self.test_function([input_batch, 0])[0]  # the first 0 indicates test
+
+    @property
+    def test_function(self):
+        # captures output of softmax so we can decode the output during visualization
+        return K.function([self.input_data, K.learning_phase()], [self.y_pred, K.learning_phase()])
 
 
 

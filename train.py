@@ -77,9 +77,9 @@ def train(train_path, valid_path, start_epoch=0, epochs=10, img_c=1, img_w=112, 
     checkpoint = ModelCheckpoint(output_dir+'/'+"lipnet{epoch:02d}.h5", monitor='val_loss', verbose=0, mode='auto', period=1)
 
     # define callbacks
-    statistics = Statistics(train_model, valid_data, decoder, 256, output_dir=os.path.join(output_dir+'/', 'stats'))
-    visualize = Visualize(os.path.join(output_dir+'/'+'visualise'), train_model, valid_data, decoder,
-                          num_display_sentences=batch_size)
+#    statistics = Statistics(train_model, valid_data, decoder, 256, output_dir=os.path.join(output_dir+'/', 'stats'))
+    #visualize = Visualize(os.path.join(output_dir+'/'+'visualise'), train_model, valid_data, decoder,
+     #                     num_display_sentences=batch_size)
     #tensorboard = TensorBoard(log_dir=os.path.join(LOG_DIR, run_name))
     #csv_logger = CSVLogger(os.path.join(LOG_DIR, "{}-{}.csv".format('training', run_name)), separator=',', append=True)
 
@@ -88,10 +88,10 @@ def train(train_path, valid_path, start_epoch=0, epochs=10, img_c=1, img_w=112, 
     train_model.model.fit_generator(generator=train_data,
                                epochs=epochs, steps_per_epoch=6,
                                validation_data=valid_data, validation_steps=2,
-                               callbacks=[checkpoint, statistics, visualize],#, tensorboard, csv_logger],
+                               callbacks=[checkpoint],# statistics, visualize, tensorboard, csv_logger],
                                initial_epoch=start_epoch,
                                verbose=1,
-                               use_multiprocessing=True,
+                               use_multiprocessing=False,
                                workers=1)
     #K.set_learning_phase(0)
     #print(train_model.model.evaluate({'input':np.array(data[-2:]), 'labels':np.array(labels[-2:]), 'input_len':np.array(input_len[-2:]), 'label_len':np.array(output_len[-2:])}, {'ctc':np.zeros([2])}))
