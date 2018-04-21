@@ -74,9 +74,9 @@ class Statistics(keras.callbacks.Callback):
 
         while num_left > 0:
             output_batch    = next(self.generator)[0]
-            num_proc        = min(output_batch['the_input'].shape[0], num_left)
-            y_pred          = self.model_container.predict(output_batch['the_input'][0:num_proc])
-            input_length    = output_batch['input_length'][0:num_proc]
+            num_proc        = min(output_batch['input'].shape[0], num_left)
+            y_pred          = self.model_container.predict(output_batch['input'][0:num_proc])
+            input_length    = output_batch['input_len'][0:num_proc]
             decoded_res     = self.decoder.decode(y_pred, input_length)
 
             for j in range(0, num_proc):
