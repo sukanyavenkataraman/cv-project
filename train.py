@@ -22,9 +22,9 @@ os.environ["CUDA_VISIBLE_DEVICES"]="3"
 def train(train_path, valid_path, start_epoch=0, epochs=10, img_c=1, img_w=112, img_h=112, frames_n=75, absolute_max_string_len=32, batch_size=32, learning_rate=0.1, output_dir='saved_models'):
     print ('Starting training...')
 
-    files = glob.glob(path)
     '''
 	
+    files = glob.glob(path)
     print (files)
     data = []
     labels = []
@@ -61,7 +61,7 @@ def train(train_path, valid_path, start_epoch=0, epochs=10, img_c=1, img_w=112, 
 
     # load weight if necessary
     if start_epoch > 0:
-        weight_file = os.path.join(output_dir, ('/'+'lipnet{epoch:02d}.h5') % (start_epoch - 1))
+        weight_file = os.path.join(output_dir + '/', ('lipnet%02d.h5') % (start_epoch - 1))
         train_model.model.load_weights(weight_file)
 
     #spell = Spell(path=PREDICT_DICTIONARY)
@@ -73,14 +73,14 @@ def train(train_path, valid_path, start_epoch=0, epochs=10, img_c=1, img_w=112, 
     #train_model.model.fit({'input':np.array(data[:-2]), 'labels':np.array(labels[:-2]), 'input_len':np.array(input_len[:-2]), 'label_len':np.array(output_len[:-2])}, {'ctc':np.zeros([len(data[:-2])])}, batch_size=batch_size, epochs=epochs, verbose=1, callbacks=[checkpoint], validation_split=0.0)
 
     train_model.model.fit_generator(generator=train_data,
-                               epochs=epochs,
-                               validation_data= valid_data,
+                               epochs=epochs, steps_per_epoch=6,
+                               validation_data=valid_data, validation_steps=2,
                                callbacks=[checkpoint],#, statistics, visualize, lip_gen, tensorboard, csv_logger],
-                               start_epoch=start_epoch,
+                               initial_epoch=start_epoch,
                                verbose=1,
                                use_multiprocessing=True,
-                               workers=2)
+                               workers=1)
     #K.set_learning_phase(0)
     #print(train_model.model.evaluate({'input':np.array(data[-2:]), 'labels':np.array(labels[-2:]), 'input_len':np.array(input_len[-2:]), 'label_len':np.array(output_len[-2:])}, {'ctc':np.zeros([2])}))
 
-train('train_data/*.hdf5', 'valid_data/*.hdf5', batch_size=20, epochs=20)
+train('train_data/*.hdf5', 'valid_data/*.hdf5', batch_size=20, epochs=10, start_epoch=0)

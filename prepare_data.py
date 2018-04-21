@@ -5,9 +5,10 @@ import numpy as np
 import keras
 import glob
 import h5py
+import multiprocessing
 
 class LipNetDataGen(keras.callbacks.Callback):
-    def __init__(self, path, batch_size, img_c, img_w, img_h, frames_n, absolute_max_string_len=32, shuffle=True):
+    def __init__(self, path, batch_size, img_c, img_w, img_h, frames_n, absolute_max_string_len=32, n_classes=28, shuffle=True):
 
         self.batch_size = batch_size
         self.img_c = img_c
@@ -16,18 +17,30 @@ class LipNetDataGen(keras.callbacks.Callback):
         self.frames_n = frames_n
         self.absolute_max_string_len = absolute_max_string_len
         self.shuffle = shuffle
+        self.n_classes = 28
 
         self.files = glob.glob(path)
+        self.indexes = np.arange(len(self.files))
+        self.curr_index = multiprocessing.Value('i', -1)
 
     def __len__(self):
         'Denotes the number of batches per epoch'
         return int(np.floor(len(self.files) / self.batch_size))
 
-    def __getitem__(self, index):
+    def __next__(self):
+
+        with self.curr_index.get_lock():         
+            if (self.curr_index.value+1)*self.batch_size > len(self.files):
+                self.curr_index.value = 0
+                np.random.shuffle(self.indexes)
+            else:
+                self.curr_index.value += 1
+
         'Generate one batch of data'
         # Generate indexes of the batch
-        indexes = self.indexes[index * self.batch_size:(index + 1) * self.batch_size]
+        indexes = self.indexes[self.curr_index.value * self.batch_size:(self.curr_index.value + 1) * self.batch_size]
 
+        #print (indexes)
         # Find list of IDs
         files_temp = [self.files[k] for k in indexes]
 
@@ -38,7 +51,6 @@ class LipNetDataGen(keras.callbacks.Callback):
 
     def on_epoch_end(self):
         'Updates indexes after each epoch'
-        self.indexes = np.arange(len(self.list_IDs))
         if self.shuffle == True:
             np.random.shuffle(self.indexes)
 
@@ -68,10 +80,10 @@ class LipNetDataGen(keras.callbacks.Callback):
         label_length = np.asarray(label_length)
         input_length = np.asarray(input_length)
 
-        inputs = {'the_input': X,
-                  'the_labels': y,
-                  'input_length': input_length,
-                  'label_length': label_length
+        inputs = {'input': X,
+                  'labels': y,#keras.utils.to_categorical(y, num_classes=32),#self.n_classes),
+                  'input_len': input_length,
+                  'label_len': label_length
                   }
         outputs = {'ctc': np.zeros([self.batch_size])}  # dummy data for dummy loss function
 
