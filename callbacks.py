@@ -151,11 +151,11 @@ class Visualize(keras.callbacks.Callback):
     def on_epoch_end(self, epoch, logs={}):
         output_batch = next(self.generator)[0]
 
-        y_pred       = self.model_container.predict(output_batch['the_input'][0:self.num_display_sentences])
-        input_length = output_batch['input_length'][0:self.num_display_sentences]
+        y_pred       = self.model_container.predict(output_batch['input'][0:self.num_display_sentences])
+        input_length = output_batch['input_len'][0:self.num_display_sentences]
         res          = self.decoder.decode(y_pred, input_length)
 
-        with open(os.path.join(self.output_dir, 'e%02d.csv' % (epoch)), 'wb') as csvfile:
+        with open(os.path.join(self.output_dir, 'e%02d.csv' % (epoch)), 'w+') as csvfile:
             csvw = csv.writer(csvfile)
             csvw.writerow(["Truth", "Decoded"])
             for i in range(self.num_display_sentences):

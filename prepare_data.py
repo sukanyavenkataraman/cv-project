@@ -6,6 +6,7 @@ import keras
 import glob
 import h5py
 import multiprocessing
+from helpers import labels_to_text
 
 class LipNetDataGen(keras.callbacks.Callback):
     def __init__(self, path, batch_size, img_c, img_w, img_h, frames_n, absolute_max_string_len=32, n_classes=28, shuffle=True):
@@ -29,7 +30,7 @@ class LipNetDataGen(keras.callbacks.Callback):
 
     def __next__(self):
 
-        print (self.curr_index.value, len(self.files), self.batch_size)
+        #print (self.curr_index.value, len(self.files), self.batch_size)
         with self.curr_index.get_lock():         
             if (self.curr_index.value+2)*self.batch_size >= len(self.files):
                 self.curr_index.value = 0
@@ -44,7 +45,7 @@ class LipNetDataGen(keras.callbacks.Callback):
         #print (indexes)
         # Find list of IDs
         files_temp = [self.files[k] for k in indexes]
-        print (self.curr_index.value, len(files_temp))
+        #print (self.curr_index.value, len(files_temp))
 
         # Generate data
         X, y = self.__data_generation(files_temp)
@@ -81,11 +82,12 @@ class LipNetDataGen(keras.callbacks.Callback):
 
         label_length = np.asarray(label_length)
         input_length = np.asarray(input_length)
-       
+        source_str = labels_to_text(y_temp.astype(int).tolist())
         inputs = {'input': X,
                   'labels': y,#keras.utils.to_categorical(y, num_classes=32),#self.n_classes),
                   'input_len': input_length,
-                  'label_len': label_length
+                  'label_len': label_length,
+                  'source_str': source_str
                   }
         outputs = {'ctc': np.zeros([self.batch_size])}  # dummy data for dummy loss function
 
