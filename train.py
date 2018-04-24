@@ -28,6 +28,8 @@ PREDICT_DICTIONARY = 'grid.txt'
 
 def train(train_path, valid_path, start_epoch=0, epochs=10, img_c=1, img_w=112, img_h=112, frames_n=75, absolute_max_string_len=32, batch_size=32, learning_rate=0.1, output_dir='saved_models'):
     print ('Starting training...')
+    train_num = len(glob.glob(train_path))
+    valid_num  = len(glob.glob(valid_path))
 
     '''	
     files = glob.glob(path)
@@ -84,16 +86,18 @@ def train(train_path, valid_path, start_epoch=0, epochs=10, img_c=1, img_w=112, 
     #csv_logger = CSVLogger(os.path.join(LOG_DIR, "{}-{}.csv".format('training', run_name)), separator=',', append=True)
 
     #train_model.model.fit({'input':np.array(data[:-2]), 'labels':np.array(labels[:-2]), 'input_len':np.array(input_len[:-2]), 'label_len':np.array(output_len[:-2])}, {'ctc':np.zeros([len(data[:-2])])}, batch_size=batch_size, epochs=epochs, verbose=1, callbacks=[checkpoint], validation_split=0.0)
-
+    steps_per_epoch_train = train_num/batch_size
+    steps_per_epoch_valid = valid_num/batch_size
+ 
     train_model.model.fit_generator(generator=train_data,
-                               epochs=epochs, steps_per_epoch=6,
-                               validation_data=valid_data, validation_steps=2,
+                               epochs=epochs, steps_per_epoch=steps_per_epoch_train,
+                               validation_data=valid_data, validation_steps=steps_per_epoch_valid,
                                callbacks=[checkpoint, statistics, visualize],# tensorboard, csv_logger],
                                initial_epoch=start_epoch,
                                verbose=1,
-                               use_multiprocessing=True,
-                               workers=2)
+                               use_multiprocessing=False,
+                               workers=1)
     #K.set_learning_phase(0)
     #print(train_model.model.evaluate({'input':np.array(data[-2:]), 'labels':np.array(labels[-2:]), 'input_len':np.array(input_len[-2:]), 'label_len':np.array(output_len[-2:])}, {'ctc':np.zeros([2])}))
 
-train('train_data/*.hdf5', 'valid_data/*.hdf5', batch_size=50, epochs=500, start_epoch=0)
+train('train_data/*.hdf5', 'valid_data/*.hdf5', batch_size=20, epochs=500, start_epoch=0)

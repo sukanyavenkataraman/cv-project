@@ -70,8 +70,14 @@ class LipNetDataGen(keras.callbacks.Callback):
             # Store sample
             input = h5py.File(ID, 'r')
             x_temp = np.asarray(input['video'].value)
-            x_temp = np.transpose(x_temp, (2, 1, 0)) # TODO: /255?!
+            x_temp = np.transpose(x_temp, (2, 1, 0))
             x_temp = np.expand_dims(x_temp, axis=3)
+            x_temp[np.isneginf(x_temp)] = 0.0
+            x_temp[np.isinf(x_temp)] = 1.0
+            x_temp[np.isnan(x_temp)] = 0.0
+            x_temp[x_temp > 1.0] = 1.0
+            x_temp[x_temp < 0.0] = 0.0            
+#            print (np.isfinite(x_temp).all(), np.amax(x_temp), np.amin(x_temp))
 
             y_temp = np.asarray(input['label'].value)
             y_temp = np.asarray(y_temp)
