@@ -35,6 +35,7 @@ class LipNetModel(object):
         self.output_size = output_size
         self.onlyRNN = onlyRNN
 
+        self.buildModel()
 
     def buildModel(self):
 
@@ -82,34 +83,3 @@ class LipNetModel(object):
         # captures output of softmax so we can decode the output during visualization
         #print (self.input_data, K.learning_phase(), self.y_pred, K.learning_phase())
         return K.function([self.input_data], [self.y_pred])
-
-
-    def buildModelRNN(self):
-
-        if K.image_data_format() == 'channels_first':
-            input_shape = (self.img_c, self.frames_n, self.img_w, self.img_h)
-        else:
-            input_shape = (self.frames_n, self.img_w, self.img_h, self.img_c)
-
-        self.input_data = Input(name='input', shape=input_shape, dtype=np.float32)
-        self.labels = Input(name='labels', shape=[self.absolute_max_string_len], dtype=np.float32)
-        self.input_length = Input(name='input_len', shape=[1], dtype=np.int64)
-        self.label_length = Input(name='label_len', shape=[1], dtype=np.int64)
-
-        gru1 = Bidirectional(GRU(256, return_sequences=True, kernel_initializer='Orthogonal', name='gru1'),
-                             merge_mode='concat')(self.input_data)
-        gru2 = Bidirectional(GRU(256, return_sequences=True, kernel_initializer='Orthogonal', name='gru2'),
-                             merge_mode='concat')(gru1)
-
-        dense = Dense(self.output_size, kernel_initializer='he_normal', name='dense1')(gru2)
-
-        dense = Dense(self.output_size, kernel_initializer='he_normal', name='dense1')(gru2)
-
-        self.y_pred = Activation('softmax', name='softmax')(dense)
-
-        self.loss = CTC('ctc', [self.y_pred, self.labels, self.input_length, self.label_length])
-
-        self.model = Model(inputs=[self.input_data, self.labels, self.input_length, self.label_length],
-                           outputs=self.loss)
-
-        print (self.model.summary())
