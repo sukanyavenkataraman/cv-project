@@ -10,7 +10,7 @@ import scipy.io as sio
 import numpy as np
 import h5py
 import os
-from scipy import misc
+import cv2
 
 def get_max_length():
     frames = []
@@ -37,7 +37,8 @@ for f, file in enumerate(glob.glob('../data/avletters/avletters/Lips/*.mat')):
     # resize the video to 112x112
     resized_sample = np.zeros((112,112,sh[2]))
     for i in range(sh[2]):
-        resized_sample[:,:,i] = misc.imresize(sample[:,:,i], (112,112), interp='bilinear')
+	resized_sample[:,:,i] = cv2.resize(sample[:,:,i], dsize=(112, 112))
+	resized_sample[:,:,i] = cv2.normalize(resized_sample[:,:,i], None, 0, 255, cv2.NORM_MINMAX) 
     
     # make all vides the same number of frames
     padding_length = max_length - sh[2]
