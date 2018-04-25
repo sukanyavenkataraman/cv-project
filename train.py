@@ -69,8 +69,10 @@ def train_GRID(train_path, valid_path, start_epoch=0, epochs=10, img_c=1, img_w=
     steps_per_epoch_valid = valid_num/batch_size
  
     train_model.model.fit_generator(generator=train_data,
-                               epochs=epochs, steps_per_epoch=steps_per_epoch_train,
-                               validation_data=valid_data, validation_steps=steps_per_epoch_valid,
+                               epochs=epochs,
+                               steps_per_epoch=steps_per_epoch_train,
+                               validation_data=valid_data,
+                               validation_steps=steps_per_epoch_valid,
                                callbacks=[checkpoint, statistics, visualize, tensorboard, csv_logger],
                                initial_epoch=start_epoch,
                                verbose=1,
@@ -159,8 +161,8 @@ def main():
         os.makedirs(output_dir)
 
     if sys.argv[1] == 'grid':
-        train_path = 'train_path/*.hdf5'
-        valid_path = 'valid_path/*.hdf5'
+        train_path = 'train_data/*.hdf5'
+        valid_path = 'valid_data/*.hdf5'
         train_GRID(train_path=train_path, valid_path=valid_path, batch_size=batch_size,start_epoch=start_epoch, epochs=epochs, learning_rate=learning_rate,
                    output_dir=output_dir, only_RNN=onlyRNN)
 
