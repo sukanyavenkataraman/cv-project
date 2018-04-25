@@ -25,10 +25,12 @@ import sys
 os.environ["CUDA_VISIBLE_DEVICES"]="3"
 PREDICT_GREEDY      = False
 PREDICT_BEAM_WIDTH  = 200
-PREDICT_DICTIONARY = 'grid.txt'
+PREDICT_DICTIONARY_GRID = 'grid.txt'
+PREDICT_DICTIONARY_AVLETTER = 'avletters.txt'
 
 def train_GRID(train_path, valid_path, start_epoch=0, epochs=10, img_c=1, img_w=112, img_h=112, frames_n=75,
-          absolute_max_string_len=32, batch_size=32, learning_rate=0.0001, output_dir='saved_models'):
+          absolute_max_string_len=32, batch_size=32, learning_rate=0.0001, output_dir='saved_models',
+               only_RNN=False):
 
     print ('Starting training...')
     train_num = len(glob.glob(train_path))
@@ -38,7 +40,9 @@ def train_GRID(train_path, valid_path, start_epoch=0, epochs=10, img_c=1, img_w=
     valid_data = LipNetDataGen(valid_path, batch_size, img_c, img_w, img_h, frames_n, absolute_max_string_len)
 
     adam = Adam(lr=learning_rate, beta_1=0.9, beta_2=0.999, epsilon=1e-08)
-    train_model = LipNetModel(img_c=img_c, img_w=img_w, img_h=img_h, frames_n=frames_n, absolute_max_string_len=absolute_max_string_len, output_size=28)
+    train_model = LipNetModel(img_c=img_c, img_w=img_w, img_h=img_h, frames_n=frames_n,
+                              absolute_max_string_len=absolute_max_string_len, output_size=28,
+                              onlyRNN=only_RNN)
 
     # Dummy function since the model calculates the loss
     train_model.model.compile(loss={'ctc': lambda y_true, y_pred:y_pred}, optimizer=adam, metrics=[metrics.categorical_accuracy])
@@ -48,7 +52,7 @@ def train_GRID(train_path, valid_path, start_epoch=0, epochs=10, img_c=1, img_w=
         weight_file = os.path.join(output_dir + '/', ('lipnet%02d.h5') % (start_epoch - 1))
         train_model.model.load_weights(weight_file)
 
-    spell = Spell(path=PREDICT_DICTIONARY)
+    spell = Spell(path=PREDICT_DICTIONARY_GRID)
     decoder = Decoder(greedy=PREDICT_GREEDY, beam_width=PREDICT_BEAM_WIDTH,
                         postprocessors=[labels_to_text, spell.sentence])
 
@@ -77,7 +81,8 @@ def train_GRID(train_path, valid_path, start_epoch=0, epochs=10, img_c=1, img_w=
 
 
 def train_avletter(train_path, valid_path, start_epoch=0, epochs=10, img_c=1, img_w=60, img_h=80, frames_n=25,
-               absolute_max_string_len=1, batch_size=20, learning_rate=0.0001, output_dir='saved_models'):
+               absolute_max_string_len=1, batch_size=20, learning_rate=0.0001, output_dir='saved_models',
+                   only_RNN=True):
 
     print ('Starting training...')
     train_num = len(glob.glob(train_path))
@@ -88,7 +93,8 @@ def train_avletter(train_path, valid_path, start_epoch=0, epochs=10, img_c=1, im
 
     adam = Adam(lr=learning_rate, beta_1=0.9, beta_2=0.999, epsilon=1e-08)
     train_model = LipNetModel(img_c=img_c, img_w=img_w, img_h=img_h, frames_n=frames_n,
-                              absolute_max_string_len=absolute_max_string_len, output_size=28)
+                              absolute_max_string_len=absolute_max_string_len, output_size=28,
+                              onlyRNN=only_RNN)
 
     # Dummy function since the model calculates the loss
     train_model.model.compile(loss={'ctc': lambda y_true, y_pred: y_pred}, optimizer=adam,
@@ -99,7 +105,7 @@ def train_avletter(train_path, valid_path, start_epoch=0, epochs=10, img_c=1, im
         weight_file = os.path.join(output_dir + '/', ('lipnet%02d.h5') % (start_epoch - 1))
         train_model.model.load_weights(weight_file)
 
-    spell = Spell(path=PREDICT_DICTIONARY)
+    spell = Spell(path=PREDICT_DICTIONARY_AVLETTER)
     decoder = Decoder(greedy=PREDICT_GREEDY, beam_width=PREDICT_BEAM_WIDTH,
                       postprocessors=[labels_to_text, spell.sentence])
 
@@ -131,12 +137,13 @@ def train_avletter(train_path, valid_path, start_epoch=0, epochs=10, img_c=1, im
 
 def main():
 
-    if len(sys.argv) == 7:
+    if len(sys.argv) == 8:
         batch_size = int(sys.argv[2])
         start_epoch = int(sys.argv[3])
         epochs = int(sys.argv[4])
         learning_rate = float(sys.argv[5])
         output_dir = sys.argv[6]
+        onlyRNN = (sys.argv[7] == '1')
 
     else:
         # Default
@@ -146,6 +153,7 @@ def main():
         epochs = 100
         learning_rate = 0.0001
         output_dir = 'saved_models'
+        onlyRNN = False
 
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
@@ -154,13 +162,14 @@ def main():
         train_path = 'train_path/*.hdf5'
         valid_path = 'valid_path/*.hdf5'
         train_GRID(train_path=train_path, valid_path=valid_path, batch_size=batch_size,start_epoch=start_epoch, epochs=epochs, learning_rate=learning_rate,
-                   output_dir=output_dir)
+                   output_dir=output_dir, only_RNN=onlyRNN)
 
     elif sys.argv[1] == 'avletter':
         train_path = 'train_path_avletter/*.hdf5'
         valid_path = 'valid_path_avletter/*.hdf5'
-        train_avletter(train_path=train_path, valid_path=valid_path,batch_size=batch_size, start_epoch=start_epoch, epochs=epochs, learning_rate=learning_rate,
-                       output_dir=output_dir)
+
+        train_avletter(train_path=train_path, valid_path=valid_path, batch_size=batch_size,start_epoch=start_epoch, epochs=epochs, learning_rate=learning_rate,
+                   output_dir=output_dir, only_RNN=onlyRNN)
 
 
 if __name__ == "__main__":
