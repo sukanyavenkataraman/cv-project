@@ -18,7 +18,7 @@ class LipNetDataGen(keras.callbacks.Callback):
         self.frames_n = frames_n
         self.absolute_max_string_len = absolute_max_string_len
         self.shuffle = shuffle
-        self.n_classes = 28
+        self.n_classes = n_classes
 
         self.files = glob.glob(path)
         self.indexes = np.arange(len(self.files))
@@ -30,8 +30,7 @@ class LipNetDataGen(keras.callbacks.Callback):
 
     def __next__(self):
 
-        #print (self.curr_index.value, len(self.files), self.batch_size)
-        with self.curr_index.get_lock():         
+        with self.curr_index.get_lock():
             if (self.curr_index.value+2)*self.batch_size >= len(self.files):
                 self.curr_index.value = 0
                 np.random.shuffle(self.indexes)
@@ -42,10 +41,8 @@ class LipNetDataGen(keras.callbacks.Callback):
         # Generate indexes of the batch
         indexes = self.indexes[self.curr_index.value * self.batch_size:(self.curr_index.value + 1) * self.batch_size]
 
-        #print (indexes)
         # Find list of IDs
         files_temp = [self.files[k] for k in indexes]
-        #print (self.curr_index.value, len(files_temp))
 
         # Generate data
         X, y = self.__data_generation(files_temp)
@@ -90,7 +87,7 @@ class LipNetDataGen(keras.callbacks.Callback):
         input_length = np.asarray(input_length)
         source_str = labels_to_text(y_temp.astype(int).tolist())
         inputs = {'input': X,
-                  'labels': y,#keras.utils.to_categorical(y, num_classes=32),#self.n_classes),
+                  'labels': y,
                   'input_len': input_length,
                   'label_len': label_length,
                   'source_str': source_str
