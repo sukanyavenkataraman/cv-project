@@ -9,7 +9,7 @@ import multiprocessing
 from helpers import labels_to_text
 
 class LipNetDataGen(keras.callbacks.Callback):
-    def __init__(self, path, batch_size, img_c, img_w, img_h, frames_n, absolute_max_string_len=32, n_classes=28, shuffle=True):
+    def __init__(self, path, batch_size, img_c, img_w, img_h, frames_n, absolute_max_string_len=32, shuffle=True):
 
         self.batch_size = batch_size
         self.img_c = img_c
@@ -18,7 +18,6 @@ class LipNetDataGen(keras.callbacks.Callback):
         self.frames_n = frames_n
         self.absolute_max_string_len = absolute_max_string_len
         self.shuffle = shuffle
-        self.n_classes = n_classes
 
         self.files = glob.glob(path)
         self.indexes = np.arange(len(self.files))
@@ -57,17 +56,18 @@ class LipNetDataGen(keras.callbacks.Callback):
     def __data_generation(self, files_temp):
         'Generates data containing batch_size samples'  # X : (n_samples, *dim, n_channels)
         # Initialization
-        X = np.empty((self.batch_size, self.frames_n, self.img_h, self.img_w, self.img_c))
+        X = np.empty((self.batch_size, self.frames_n, self.img_w, self.img_h, self.img_c))
         y = np.empty((self.batch_size, self.absolute_max_string_len), dtype=int)
         label_length = [self.frames_n]*self.batch_size
         input_length = [self.absolute_max_string_len]*self.batch_size
+        source_str = []
 
         # Generate data
         for i, ID in enumerate(files_temp):
             # Store sample
             input = h5py.File(ID, 'r')
             x_temp = np.asarray(input['video'].value)
-            x_temp = np.transpose(x_temp, (2, 1, 0))
+            x_temp = np.transpose(x_temp, (2, 0, 1))
             x_temp = np.expand_dims(x_temp, axis=3)
             x_temp[np.isneginf(x_temp)] = 0.0
             x_temp[np.isinf(x_temp)] = 1.0
@@ -76,16 +76,21 @@ class LipNetDataGen(keras.callbacks.Callback):
             x_temp[x_temp < 0.0] = 0.0            
 #            print (np.isfinite(x_temp).all(), np.amax(x_temp), np.amin(x_temp))
 
-            y_temp = np.asarray(input['label'].value)
+            y_temp = input['label'].value
             y_temp = np.asarray(y_temp)
             y_temp[y_temp == -1] = 27
 
             X[i,] = x_temp
             y[i,] = y_temp
-
+            if self.absolute_max_string_len  == 1:
+                source_str.append(labels_to_text([y_temp.astype(int).tolist()]))
+            else:
+                source_str.append(labels_to_text(y_temp.astype(int).tolist()))
+            
         label_length = np.asarray(label_length)
         input_length = np.asarray(input_length)
-        source_str = labels_to_text(y_temp.astype(int).tolist())
+        source_str = np.asarray(source_str)
+
         inputs = {'input': X,
                   'labels': y,
                   'input_len': input_length,

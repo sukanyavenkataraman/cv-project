@@ -82,7 +82,7 @@ def train_GRID(train_path, valid_path, start_epoch=0, epochs=10, img_c=1, img_w=
     #print(train_model.model.evaluate({'input':np.array(data[-2:]), 'labels':np.array(labels[-2:]), 'input_len':np.array(input_len[-2:]), 'label_len':np.array(output_len[-2:])}, {'ctc':np.zeros([2])}))
 
 
-def train_avletter(train_path, valid_path, start_epoch=0, epochs=10, img_c=1, img_w=60, img_h=80, frames_n=25,
+def train_avletter(train_path, valid_path, start_epoch=0, epochs=10, img_c=1, img_w=112, img_h=112, frames_n=40,
                absolute_max_string_len=1, batch_size=20, learning_rate=0.0001, output_dir='saved_models',
                    only_RNN=True):
 
@@ -95,7 +95,7 @@ def train_avletter(train_path, valid_path, start_epoch=0, epochs=10, img_c=1, im
 
     adam = Adam(lr=learning_rate, beta_1=0.9, beta_2=0.999, epsilon=1e-08)
     train_model = LipNetModel(img_c=img_c, img_w=img_w, img_h=img_h, frames_n=frames_n,
-                              absolute_max_string_len=absolute_max_string_len, output_size=28,
+                              absolute_max_string_len=absolute_max_string_len, output_size=1,
                               onlyRNN=only_RNN)
 
     # Dummy function since the model calculates the loss
@@ -112,7 +112,7 @@ def train_avletter(train_path, valid_path, start_epoch=0, epochs=10, img_c=1, im
                       postprocessors=[labels_to_text, spell.sentence])
 
     checkpoint = ModelCheckpoint(output_dir + '/' + "lipnet{epoch:02d}.h5", monitor='val_loss', verbose=0, mode='auto',
-                                 period=50)
+                                 period=1)
 
     # define callbacks
     statistics = Statistics(train_model, valid_data, decoder, 256, output_dir=os.path.join(output_dir + '/', 'stats'))
@@ -166,13 +166,15 @@ def main():
         train_GRID(train_path=train_path, valid_path=valid_path, batch_size=batch_size,start_epoch=start_epoch, epochs=epochs, learning_rate=learning_rate,
                    output_dir=output_dir, only_RNN=onlyRNN)
 
-    elif sys.argv[1] == 'avletter':
-        train_path = 'train_path_avletter/*.hdf5'
-        valid_path = 'valid_path_avletter/*.hdf5'
+    elif sys.argv[1] == 'avletters':
+        train_path = 'train_data_avletters/*.hdf5'
+        valid_path = 'valid_data_avletters/*.hdf5'
 
         train_avletter(train_path=train_path, valid_path=valid_path, batch_size=batch_size,start_epoch=start_epoch, epochs=epochs, learning_rate=learning_rate,
                    output_dir=output_dir, only_RNN=onlyRNN)
-
+    else:
+        print ('Invalid data type. Exiting...')
+        return
 
 if __name__ == "__main__":
     main()

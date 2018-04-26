@@ -43,6 +43,7 @@ class LipNetModel(object):
             input_shape = (self.img_c, self.frames_n, self.img_w, self.img_h)
         else:
             input_shape = (self.frames_n, self.img_w, self.img_h, self.img_c)
+        print (self.frames_n, self.img_w, self.img_h, self.img_c, input_shape)
 
         self.input_data = Input(name='input', shape=input_shape, dtype=np.float32)
         self.labels = Input(name='labels', shape=[self.absolute_max_string_len], dtype=np.float32)
@@ -58,7 +59,6 @@ class LipNetModel(object):
 
             # TODO: check if hardcoded 256 can be removed
             resnet = TimeDistributed(ResnetBuilder.build_resnet_34((int(maxpool.shape[-1]), int(maxpool.shape[-2]), int(maxpool.shape[-3])), 256), name='timedistresnet')(maxpool)
-
         else:
             resnet = self.input_data
 

@@ -125,6 +125,7 @@ def _decode(y_pred, input_length, greedy=True, beam_width=100, top_paths=1):
                            greedy=greedy, beam_width=beam_width, top_paths=top_paths)
     paths = [path.eval(session=K.get_session()) for path in decoded[0]]
     logprobs  = decoded[1].eval(session=K.get_session())
+#    print (decoded, paths, logprobs)
 
     return (paths, logprobs)
 
@@ -154,6 +155,8 @@ class Decoder(object):
         decoded = decode(y_pred, input_length, greedy=self.greedy, beam_width=self.beam_width,
                          top_paths=self.top_paths, language_model=self.language_model)
         preprocessed = []
+ #       print (decoded)
+
         for output in decoded:
             out = output
             for postprocessor in self.postprocessors:
