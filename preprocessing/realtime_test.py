@@ -4,7 +4,10 @@ Created on Sat Feb 24 19:08:24 2018
 
 @author: pragathi
 """
-
+"""
+Run this file to open webcam and get lip segmented region of interest.
+Resized to 112x112 and normalized.
+"""
 import crop
 import cv2
 

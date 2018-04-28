@@ -15,10 +15,10 @@ predictor = dlib.shape_predictor('shape_predictor_68_face_landmarks.dat')
 
 
 def shape_to_np(shape, dtype="int"):
-	coords = np.zeros((68, 2), dtype=dtype)
-	for i in range(0, 68):
-		coords[i] = (shape.part(i).x, shape.part(i).y)
-	return coords
+    coords = np.zeros((68, 2), dtype=dtype)
+    for i in range(0, 68):
+        coords[i] = (shape.part(i).x, shape.part(i).y)
+    return coords
 
 def bounding_points(coords):
     X = [x for (x,y) in coords]
@@ -46,7 +46,7 @@ def detect_mouth(frame):
         normalized_image = cv2.normalize(mouth_image, None, 0, 255, cv2.NORM_MINMAX) 
     else:
         return np.empty([112,112])
-    
+  
     return normalized_image
         
 
