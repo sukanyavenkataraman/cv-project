@@ -65,6 +65,6 @@ for f, file in enumerate(glob.glob('../data/avletters/avletters/Lips/*.mat')):
     if feature_type is 'OpticalFlow' or 'both':
         flow = optical_flow.dense_optical_flow('../data/avletters_processed/{i}.hdf5'.format(i=str(f+1)))
         out = h5py.File('../data/avletters_processed_OF/{i}.hdf5'.format(i=str(f + 1)), 'w')
-        out.create_dataset('video', data=resized_sample)
+        out.create_dataset('video', data=flow)
         out.create_dataset('label', data=label)
         out.close()
