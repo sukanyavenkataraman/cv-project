@@ -58,7 +58,7 @@ class LipNetDataGen(keras.callbacks.Callback):
         # Initialization
         X = np.empty((self.batch_size, self.frames_n, self.img_w, self.img_h, self.img_c))
         y = np.empty((self.batch_size, self.absolute_max_string_len), dtype=int)
-        label_length = [self.frames_n]*self.batch_size
+        label_length = []
         input_length = [self.absolute_max_string_len]*self.batch_size
         source_str = []
 
@@ -79,6 +79,7 @@ class LipNetDataGen(keras.callbacks.Callback):
             y_temp = input['label'].value
             y_temp = np.asarray(y_temp)
             y_temp[y_temp == -1] = 27
+            label_length.append(len(y_temp[y_temp != 27]))
 
             X[i,] = x_temp
             y[i,] = y_temp
