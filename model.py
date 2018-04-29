@@ -52,7 +52,7 @@ class LipNetModel(object):
 
         if not self.onlyRNN:
             pad = ZeroPadding3D(padding=(1, 2, 2), name='pad')(self.input_data)
-            conv1 = Conv3D(64, (5, 7, 7), strides=(1, 2, 2), data_format='channels_last', activation='relu', kernel_initializer='he_normal', name='conv1')(pad)
+            conv1 = Conv3D(64, (3, 5, 5), strides=(1, 2, 2), data_format='channels_last', activation='relu', kernel_initializer='he_normal', name='conv1')(pad)
             maxpool = MaxPooling3D(pool_size=(1, 3, 3), strides=(1, 2, 2), name='max1')(conv1)
 
             print (maxpool.shape)

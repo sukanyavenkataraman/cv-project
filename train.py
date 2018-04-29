@@ -22,7 +22,7 @@ from helpers import Spell, Decoder
 from callbacks import Statistics, Visualize
 import sys
 
-os.environ["CUDA_VISIBLE_DEVICES"]="3"
+os.environ["CUDA_VISIBLE_DEVICES"]="1"
 PREDICT_GREEDY      = False
 PREDICT_BEAM_WIDTH  = 200
 PREDICT_DICTIONARY_GRID = 'grid.txt'
@@ -41,7 +41,7 @@ def train_GRID(train_path, valid_path, start_epoch=0, epochs=10, img_c=1, img_w=
 
     adam = Adam(lr=learning_rate, beta_1=0.9, beta_2=0.999, epsilon=1e-08)
     train_model = LipNetModel(img_c=img_c, img_w=img_w, img_h=img_h, frames_n=frames_n,
-                              absolute_max_string_len=absolute_max_string_len, output_size=28,
+                              absolute_max_string_len=absolute_max_string_len, output_size=32,
                               onlyRNN=only_RNN)
 
     # Dummy function since the model calculates the loss
@@ -95,7 +95,7 @@ def train_avletter(train_path, valid_path, start_epoch=0, epochs=10, img_c=1, im
 
     adam = Adam(lr=learning_rate, beta_1=0.9, beta_2=0.999, epsilon=1e-08)
     train_model = LipNetModel(img_c=img_c, img_w=img_w, img_h=img_h, frames_n=frames_n,
-                              absolute_max_string_len=absolute_max_string_len, output_size=1,
+                              absolute_max_string_len=absolute_max_string_len, output_size=28,
                               onlyRNN=only_RNN)
 
     # Dummy function since the model calculates the loss
