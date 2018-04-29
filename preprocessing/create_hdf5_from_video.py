@@ -21,10 +21,20 @@ def get_segment(start, end, video):
     cap.release()
     return segment
 
-def create(input_filename, output_filename):
-    video = get_segment(1, 75, input_filename)
+def create(input_filename, output_filename,length):
+    if length is 'all':
+        cap = cv2.VideoCapture(input_filename)
+        length = 0
+        while (cap.isOpened()):
+            ret, frame = cap.read()
+            if ret == True:
+                length+=1
+            else:
+                break
+        cap.release()
+    video = get_segment(1, length, input_filename)
     out = h5py.File(output_filename, 'w')
     out.create_dataset('video', data=video)
     out.close()
 
-create('AFTERNOON.mp4','AFTERNOON.hdf5')
+create('AFTERNOON.mp4','AFTERNOON.hdf5','all')

@@ -10,6 +10,11 @@ import crop
 import h5py
 import zipfile, tarfile
 import os
+import optical_flow
+
+feature_type = 'CropNorm'
+feature_type = 'OpticalFlow'
+feature_type = 'both'
 
 def get_segment(start, end, video):
     ind = 0
@@ -41,6 +46,8 @@ def get_sentence_label(label_file, N):
 
 if not os.path.exists('../data/grid_processed'):
     os.makedirs('../data/grid_processed')
+if not os.path.exists('../data/grid_processed_OF'):
+    os.makedirs('../data/grid_processed_OF')
 
 counter = 0
 ##### change this range for the final training #####
@@ -68,15 +75,21 @@ for i in range(speaker_begin,speaker_end+1):
             
             for label_name in label_dir.getnames(): 
                 if sentence in label_name:
-                    label_file    = open(label_name,'r') 
+                    label_file = open(label_name,'r')
             
-            label = get_sentence_label(label_file, 32)     
-            video = get_segment(1, 75, video_name)            
-        
-            out = h5py.File('../data/grid_processed/{i}-{sentence}.hdf5'.format(i=str(i),sentence=sentence),'w')
-            out.create_dataset('video', data=video)
-            out.create_dataset('label', data=label)
-            out.close()
-  
+            label = get_sentence_label(label_file, 32)
+            video = get_segment(1, 75, video_name)
+
+            if feature_type is 'CropNorm' or 'both':
+                out = h5py.File('../data/grid_processed/{i}-{sentence}.hdf5'.format(i=str(i),sentence=sentence),'w')
+                out.create_dataset('video', data=video)
+                out.create_dataset('label', data=label)
+                out.close()
+            if feature_type is 'OpticalFlow' or 'both':
+                flow = optical_flow.sparse_optical_flow('../data/grid_processed/{i}-{sentence}.hdf5'.format(i=str(i),sentence=sentence))
+                out = h5py.File('../data/grid_processed_OF/{i}-{sentence}.hdf5'.format(i=str(i),sentence=sentence),'w')
+                out.create_dataset('video', data=flow)
+                out.create_dataset('label', data=label)
+                out.close()
             
 print('...done') 
