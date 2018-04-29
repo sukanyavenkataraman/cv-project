@@ -48,5 +48,23 @@ def detect_mouth(frame):
         return np.empty([112,112])
   
     return normalized_image
-        
+
+
+def landmarks(frame,region):
+    # take the first face
+    rect = detector(frame, 1)
+    if rect:
+        # get coordinates for the facial landmarks
+        shape = predictor(frame, rect[0])
+        # convert them to coordinates
+        shape = shape_to_np(shape)
+        if region == 'lips':
+            return shape[48:68]
+        if region == 'lipsjaws':
+            return np.concatenate([shape[0:17], shape[48:68]])
+    else:
+        if region == 'lips':
+            return np.empty([20, 1])
+        if region == 'lipsjaws':
+            return np.empty([37, 1])
 

@@ -75,7 +75,7 @@ for i in range(speaker_begin,speaker_end+1):
         
             out = h5py.File('../data/grid_processed/{i}-{sentence}.hdf5'.format(i=str(i),sentence=sentence),'w')
             out.create_dataset('video', data=video)
-            out.create_dataset('label', data=labels)
+            out.create_dataset('label', data=label)
             out.close()
   
             
