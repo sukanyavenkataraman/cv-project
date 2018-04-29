@@ -60,7 +60,8 @@ class LipNetModel(object):
             # TODO: check if hardcoded 256 can be removed
             resnet = TimeDistributed(ResnetBuilder.build_resnet_34((int(maxpool.shape[-1]), int(maxpool.shape[-2]), int(maxpool.shape[-3])), 256), name='timedistresnet')(maxpool)
         else:
-            resnet = Dense(256, kernel_initializer='he_normal', name='dense')(self.input_data)
+            resnet = TimeDistributed(Flatten())(self.input_data)
+            print (resnet.shape)
 
         gru1 = Bidirectional(GRU(256, return_sequences=True, kernel_initializer='Orthogonal', name='gru1'), merge_mode='concat')(resnet)
         gru2 = Bidirectional(GRU(256, return_sequences=True, kernel_initializer='Orthogonal', name='gru2'), merge_mode='concat')(gru1)

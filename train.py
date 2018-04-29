@@ -17,12 +17,14 @@ np.random.seed(22)
 from keras import backend as K
 from prepare_data import LipNetDataGen
 K.set_learning_phase(1)
-from helpers import labels_to_text
-from helpers import Spell, Decoder
-from callbacks import Statistics, Visualize
+#from helpers import labels_to_text
+#from helpers import Spell, Decoder
+#from callbacks import Statistics, Visualize
+import helpers, helpers_avl
+import callbacks, callbacks_avl
 import sys
 
-os.environ["CUDA_VISIBLE_DEVICES"]="1"
+os.environ["CUDA_VISIBLE_DEVICES"]="0"
 PREDICT_GREEDY      = False
 PREDICT_BEAM_WIDTH  = 200
 PREDICT_DICTIONARY_GRID = 'grid.txt'
@@ -52,15 +54,15 @@ def train_GRID(train_path, valid_path, start_epoch=0, epochs=10, img_c=1, img_w=
         weight_file = os.path.join(output_dir + '/', ('lipnet%02d.h5') % (start_epoch - 1))
         train_model.model.load_weights(weight_file)
 
-    spell = Spell(path=PREDICT_DICTIONARY_GRID)
-    decoder = Decoder(greedy=PREDICT_GREEDY, beam_width=PREDICT_BEAM_WIDTH,
-                        postprocessors=[labels_to_text, spell.sentence])
+    spell = helpers.Spell(path=PREDICT_DICTIONARY_GRID)
+    decoder = helpers.Decoder(greedy=PREDICT_GREEDY, beam_width=PREDICT_BEAM_WIDTH,
+                        postprocessors=[helpers.labels_to_text, spell.sentence])
 
     checkpoint = ModelCheckpoint(output_dir+'/'+"lipnet{epoch:02d}.h5", monitor='val_loss', verbose=0, mode='auto', period=50)
 
     # define callbacks
-    statistics = Statistics(train_model, valid_data, decoder, 256, output_dir=os.path.join(output_dir+'/', 'stats'))
-    visualize = Visualize(os.path.join(output_dir+'/'+'visualise'), train_model, valid_data, decoder,
+    statistics = callbacks.Statistics(train_model, valid_data, decoder, 256, output_dir=os.path.join(output_dir+'/', 'stats'))
+    visualize = callbacks.Visualize(os.path.join(output_dir+'/'+'visualise'), train_model, valid_data, decoder,
                           num_display_sentences=batch_size)
     tensorboard = TensorBoard(log_dir=os.path.join(output_dir+'/'+'tensorboard'))
     csv_logger = CSVLogger(os.path.join(output_dir+'/'+'tensorboard', "{}.csv".format('training')), separator=',', append=True)
@@ -107,16 +109,15 @@ def train_avletter(train_path, valid_path, start_epoch=0, epochs=10, img_c=1, im
         weight_file = os.path.join(output_dir + '/', ('lipnet%02d.h5') % (start_epoch - 1))
         train_model.model.load_weights(weight_file)
 
-    spell = Spell(path=PREDICT_DICTIONARY_AVLETTER)
-    decoder = Decoder(greedy=PREDICT_GREEDY, beam_width=PREDICT_BEAM_WIDTH,
-                      postprocessors=[labels_to_text, spell.sentence])
+    decoder = helpers_avl.Decoder(greedy=PREDICT_GREEDY, beam_width=PREDICT_BEAM_WIDTH,
+                      postprocessors=[helpers_avl.labels_to_text])
 
     checkpoint = ModelCheckpoint(output_dir + '/' + "lipnet{epoch:02d}.h5", monitor='val_loss', verbose=0, mode='auto',
-                                 period=1)
+                                 period=50)
 
     # define callbacks
-    statistics = Statistics(train_model, valid_data, decoder, 256, output_dir=os.path.join(output_dir + '/', 'stats'))
-    visualize = Visualize(os.path.join(output_dir + '/' + 'visualise'), train_model, valid_data, decoder,
+    statistics = callbacks_avl.Statistics(train_model, valid_data, decoder, 256, output_dir=os.path.join(output_dir + '/', 'stats'))
+    visualize = callbacks_avl.Visualize(os.path.join(output_dir + '/' + 'visualise'), train_model, valid_data, decoder,
                           num_display_sentences=batch_size)
     tensorboard = TensorBoard(log_dir=os.path.join(output_dir + '/' + 'tensorboard'))
     csv_logger = CSVLogger(os.path.join(output_dir + '/' + 'tensorboard', "{}.csv".format('training')), separator=',',
@@ -163,15 +164,27 @@ def main():
     if sys.argv[1] == 'grid':
         train_path = 'train_data/*.hdf5'
         valid_path = 'valid_data/*.hdf5'
+        if onlyRNN:
+            frames_n = 74
+            img_h = 1
+            img_c = 1
+            img_w = 37
+        else:
+            frames_n = 75
+
         train_GRID(train_path=train_path, valid_path=valid_path, batch_size=batch_size,start_epoch=start_epoch, epochs=epochs, learning_rate=learning_rate,
-                   output_dir=output_dir, only_RNN=onlyRNN)
+                   output_dir=output_dir, img_c=img_c, img_w=img_w, img_h=img_h, frames_n=frames_n, only_RNN=onlyRNN)
 
     elif sys.argv[1] == 'avletters':
         train_path = 'train_data_avletters/*.hdf5'
         valid_path = 'valid_data_avletters/*.hdf5'
+        if onlyRNN:
+           frames_n = 39
+        else:
+           frames_n = 40
 
         train_avletter(train_path=train_path, valid_path=valid_path, batch_size=batch_size,start_epoch=start_epoch, epochs=epochs, learning_rate=learning_rate,
-                   output_dir=output_dir, only_RNN=onlyRNN)
+                   output_dir=output_dir, frames_n=frames_n, only_RNN=onlyRNN)
     else:
         print ('Invalid data type. Exiting...')
         return

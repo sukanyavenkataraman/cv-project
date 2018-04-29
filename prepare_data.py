@@ -67,7 +67,13 @@ class LipNetDataGen(keras.callbacks.Callback):
             # Store sample
             input = h5py.File(ID, 'r')
             x_temp = np.asarray(input['video'].value)
-            x_temp = np.transpose(x_temp, (2, 0, 1))
+            # When grid has of vectors, img h is 1
+            if self.img_h == 1:
+                x_temp = np.transpose(x_temp, (1, 0))
+                x_temp = np.expand_dims(x_temp, axis=2)
+            else:
+                x_temp = np.transpose(x_temp, (2, 0, 1))
+
             x_temp = np.expand_dims(x_temp, axis=3)
             x_temp[np.isneginf(x_temp)] = 0.0
             x_temp[np.isinf(x_temp)] = 1.0
